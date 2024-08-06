@@ -2,8 +2,6 @@ import numpy as np
 import random
 import itertools
 from collections import defaultdict
-import pandas as pd
-import matplotlib.pyplot as plt
 
 from episode import Episode
 
@@ -34,22 +32,24 @@ class InventoryEnvironment:
 
         return self.state, reward
 
-    def generate_episode(self, env, policy, episode, total_days, action=None):
+    def generate_episode(self, env, policy, episode, total_days, random_action=None):
         episode_info = []
         state = tuple(env.reset().values())
 
         for day in range(total_days):
-            if action is None: action = policy[state]
-            new_state, reward = env.step(action)
+            if day == 0 and random_action is not None: selected_action = random_action
+            else: selected_action = policy[state]
 
-            episode_obj = Episode(episode, day, state, action.copy(), reward)
+            new_state, reward = env.step(selected_action)
+
+            episode_obj = Episode(episode, day, state, selected_action, reward)
             episode_info.append(episode_obj)
             
             state = tuple(new_state.values())
 
         return episode_info
 
-    def generate_arbitrary_policies(self):
+    def generate_policies(self):
         policy = {}
         stock_levels = range(self.max_stock + 1)
         all_states = list(itertools.product(stock_levels, repeat=len(self.products)))
@@ -61,16 +61,16 @@ class InventoryEnvironment:
 
     def mc_exploring_starts(self, env, total_episodes, total_days, gamma=0.9):
         # Initialize:
-        pi = self.generate_arbitrary_policies()
+        pi = self.generate_policies()
         Q = defaultdict(lambda: defaultdict(float))
         returns = defaultdict(list)
 
         for episode in range(total_episodes):
             # choosing random initial state and action
-            init_state = random.choice(list(pi.keys()))
-            init_action = pi[init_state]
+            random_state = random.choice(list(pi.keys()))
+            random_action = pi[random_state]
 
-            episode_data = env.generate_episode(env, pi, episode, total_days, action=init_action)
+            episode_data = env.generate_episode(env, pi, episode, total_days, random_action=random_action)
             
             G = 0
             visited_state_action = set()
