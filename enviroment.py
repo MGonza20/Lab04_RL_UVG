@@ -54,9 +54,8 @@ class InventoryEnvironment:
         stock_levels = range(self.max_stock + 1)
         all_states = list(itertools.product(stock_levels, repeat=len(self.products)))
 
-        restock_amount = 5
         for state_tuple in all_states:
-            policy[state_tuple] = {product: restock_amount for product in self.products}
+            policy[state_tuple] = {product: random.randint(0, env.max_stock) for product in env.products}
 
         return policy
 
