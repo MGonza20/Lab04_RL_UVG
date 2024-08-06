@@ -56,7 +56,6 @@ class InventoryEnvironment:
 
         restock_amount = 5
         for state_tuple in all_states:
-            state = dict(zip(self.products, state_tuple))
             policy[state_tuple] = {product: restock_amount for product in self.products}
 
         return policy
@@ -81,7 +80,6 @@ class InventoryEnvironment:
                 action = episode_data[current_step].action
                 reward = episode_data[current_step].reward
                 G = gamma * G + reward
-                mmm = action.items()
                 action_tuple = tuple(action.items())
 
                 if (state, action_tuple) not in visited_state_action:
@@ -100,4 +98,4 @@ class InventoryEnvironment:
         return pi, Q
 
 env = InventoryEnvironment()
-policy, Q= env.mc_exploring_starts(env, total_episodes=2000, total_days=30)
+policy, Q = env.mc_exploring_starts(env, total_episodes=2000, total_days=30)
