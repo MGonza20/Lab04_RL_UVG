@@ -152,3 +152,58 @@ plt.ylabel('Niveles de Stock')
 plt.legend()
 plt.grid(True)
 plt.show()
+
+
+# Graficar el impacto de epsilon en la recompensa acumulada
+epsilon_values = [0.9, 0.5, 0.1]
+total_episodes = 2000
+total_days = 30
+
+rewards_by_epsilon = {}
+
+for epsilon in epsilon_values:
+    cumulative_rewards = []
+    for episode in range(total_episodes):
+        episode_data = env.generate_episode(lambda state, epsilon=epsilon: env.epsilon_greedy_policy(Q, state, epsilon), total_days, epsilon)
+        
+        total_reward = sum(step.reward for step in episode_data)
+        cumulative_rewards.append(total_reward)
+    
+    rewards_by_epsilon[epsilon] = cumulative_rewards
+plt.figure(figsize=(14, 7))
+for epsilon, rewards in rewards_by_epsilon.items():
+    plt.plot(range(total_episodes), rewards, label=f'Epsilon = {epsilon}')
+    
+plt.title('Impact of Epsilon on Cumulative Reward')
+plt.xlabel('Episode')
+plt.ylabel('Cumulative Reward')
+plt.grid(True)
+plt.legend()
+plt.show()
+
+
+on_policy_rewards = []
+Q_on_policy = env.mc_exploring_starts(total_episodes=total_episodes, total_days=total_days, epsilon=0.1)
+
+
+for episode in range(total_episodes):
+    episode_data = env.generate_episode(lambda state, epsilon=0.1: env.epsilon_greedy_policy(Q_on_policy, state, epsilon), total_days, epsilon=0.1)
+    total_reward = sum(step.reward for step in episode_data)
+    on_policy_rewards.append(total_reward)
+
+off_policy_rewards = []
+Q_off_policy = env.mc_off_policy(total_episodes=total_episodes, total_days=total_days, epsilon=0.1)
+
+for episode in range(total_episodes):
+    episode_data = env.generate_episode(env.random_policy, total_days)
+    total_reward = sum(step.reward for step in episode_data)
+    off_policy_rewards.append(total_reward)
+plt.figure(figsize=(14, 7))
+plt.plot(range(total_episodes), on_policy_rewards, label='On-Policy (Exploring Starts)', color='blue')
+plt.plot(range(total_episodes), off_policy_rewards, label='Off-Policy', color='red')
+plt.title('Impact of On-Policy vs Off-Policy Learning')
+plt.xlabel('Episode')
+plt.ylabel('Cumulative Reward')
+plt.grid(True)
+plt.legend()
+plt.show()
