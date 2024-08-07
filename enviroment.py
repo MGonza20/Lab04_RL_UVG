@@ -4,6 +4,8 @@ import itertools
 from collections import defaultdict
 
 from episode import Episode
+import matplotlib.pyplot as plt
+
 
 # Definicion de ambiente
 class InventoryEnvironment:
@@ -130,7 +132,23 @@ class InventoryEnvironment:
 env = InventoryEnvironment()
 print("Usando Off Policy: ")
 Q = env.mc_off_policy(total_episodes=2000, total_days=30, epsilon=0.1)
-print(Q)
-print("Usando MC Exploring Starts: ")
-Q2 = env.mc_exploring_starts(total_episodes=2000, total_days=30, epsilon=0.1)
-print(Q)
+# Generar un episodio usando la política epsilon-greedy
+total_days = 30
+epsilon = 0.1
+episode_data = env.generate_episode(lambda state, epsilon: env.epsilon_greedy_policy(Q, state, epsilon), total_days, epsilon)
+
+# Extraer los niveles de stock de cada producto a lo largo del episodio
+days = list(range(total_days))
+stock_product_A = [step.state[0] for step in episode_data]
+stock_product_B = [step.state[1] for step in episode_data]
+
+# Graficar los niveles de stock
+plt.figure(figsize=(12, 6))
+plt.plot(days, stock_product_A, label='Product A', marker='o')
+plt.plot(days, stock_product_B, label='Product B', marker='o')
+plt.title('Cambio de Stock durante el Episodio')
+plt.xlabel('Días')
+plt.ylabel('Niveles de Stock')
+plt.legend()
+plt.grid(True)
+plt.show()
